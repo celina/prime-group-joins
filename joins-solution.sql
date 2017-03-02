@@ -48,21 +48,21 @@ CREATE TABLE warehouse_product (
     PRIMARY KEY (product_id, warehouse_id)
 );
 
-INSERT INTO customers 
+INSERT INTO customers
 VALUES (1, 'Lisa', 'Bonet'),
 (2, 'Charles', 'Darwin'),
 (3, 'George', 'Foreman'),
 (4, 'Lucy', 'Liu');
 
-INSERT INTO addresses 
-VALUES (1, '1 Main St', 'Detroit', 'MI', '31111', 'home', 1), 
+INSERT INTO addresses
+VALUES (1, '1 Main St', 'Detroit', 'MI', '31111', 'home', 1),
 (2, '555 Some Pl', 'Chicago', 'IL', '60611', 'business', 1),
 (3, '8900 Linova Ave', 'Minneapolis', 'MN', '55444', 'home', 2),
 (4, 'PO Box 999', 'Minneapolis', 'MN', '55334', 'business', 3),
 (5, '3 Charles Dr', 'Los Angeles', 'CA', '00000', 'home', 4),
 (6, '934 Superstar Ave', 'Portland', 'OR', '99999', 'business', 4);
 
-INSERT INTO orders 
+INSERT INTO orders
 VALUES (1, '2010-03-05', 88.00, 1),
 (2, '2012-02-08', 23.50, 2),
 (3, '2016-02-07', 4.09, 2),
@@ -71,7 +71,7 @@ VALUES (1, '2010-03-05', 88.00, 1),
 (6, '2012-09-23', 23.00, 6),
 (7, '2013-05-25', 39.12, 5);
 
-INSERT INTO products 
+INSERT INTO products
 VALUES (1, 'toothbrush', 3.00),
 (2, 'nail polish - blue', 4.25),
 (3, 'generic beer can', 2.50),
@@ -80,7 +80,7 @@ VALUES (1, 'toothbrush', 3.00),
 (6, 'diet pepsi', 1.20),
 (7, 'wet ones baby wipes', 8.99);
 
-INSERT INTO line_items 
+INSERT INTO line_items
 VALUES (1, 5.00, 16, 1, 1),
 (2, 3.12, 4, 1, 2),
 (3, 4.00, 2, 2, 3),
@@ -95,7 +95,7 @@ INSERT INTO warehouse VALUES (1, 'alpha', 2),
 (4, 'gamma', 4),
 (5, 'epsilon', 5);
 
-INSERT INTO warehouse_product 
+INSERT INTO warehouse_product
 VALUES (1, 3, 0),
 (1, 1, 5),
 (2, 4, 20),
@@ -109,64 +109,133 @@ VALUES (1, 3, 0),
 (6, 4, 3);
 
 
---Get all customers and their addresses.
+-- 1. Get all customers and their addresses.
 SELECT *
-FROM customers 
+FROM customers
 JOIN addresses ON addresses.customer_id = customers.id;
 
---Get all orders and their line items.
+-- 2. Get all orders and their line items.
 SELECT *
-FROM line_items 
+FROM line_items
 FULL OUTER JOIN orders ON line_items.order_id = orders.id;
 
---Which warehouses have cheetos?
---SELECT * 
+-- 3. Which warehouses have cheetos?
+--SELECT *
 --FROM products
 --WHERE description='cheetos';
 --
---SELECT * 
+--SELECT *
 --FROM warehouse_product
 --WHERE product_id = 5;
 --
 --SELECT *
---FROM warehouse 
+--FROM warehouse
 --WHERE warehouse.id =3;
 
+-- from walkthrough
+SELECT *
+FROM warehouse;
+-- from walkthrough
+SELECT *
+FROM products;
+-- from walkthrough
+SELECT *
+FROM warehouse_product;
+-- from walkthrough
 SELECT *
 FROM warehouse
-FULL OUTER JOIN warehouse_product ON warehouse.id = warehouse_product.warehouse_id
-FULL OUTER JOIN products ON products.id = warehouse_product.product_id
-WHERE description = 'cheetos';
+JOIN warehouse_product ON warehouse.id=warehouse_product.warehouse_id
+JOIN products ON warehouse_product.product_id=products.id
+WHERE products.description = 'cheetos';
+-- from walkthrough
+SELECT *
+FROM warehouse
+JOIN warehouse_product ON warehouse.id=warehouse_product.warehouse_id
+JOIN products ON warehouse_product.product_id=products.id
+WHERE products.description = 'cheetos';
 
---Which warehouses have diet pepsi?
+-- from walkthrough -- gets just the warehouse result
+SELECT warehouse.warehouse
+FROM warehouse
+JOIN warehouse_product ON warehouse.id=warehouse_product.warehouse_id
+JOIN products ON warehouse_product.product_id=products.id
+WHERE products.description = 'cheetos';
+
+-- 4. Which warehouses have diet pepsi?
 SELECT *
 FROM warehouse
 FULL OUTER JOIN warehouse_product ON warehouse.id = warehouse_product.warehouse_id
 FULL OUTER JOIN products ON products.id = warehouse_product.product_id
 WHERE description = 'diet pepsi';
 
---Get the number of orders for each customer. NOTE: It is OK if those without orders are not included in results.
+-- from walkthrough
+SELECT warehouse.id, warehouse.warehouse
+FROM warehouse
+JOIN warehouse_product ON warehouse.id=warehouse_product.warehouse_id
+JOIN products ON warehouse_product.product_id=products.id
+WHERE products.description = 'diet pepsi';
+
+-- from walkthrough
+SELECT warehouse.id, warehouse.warehouse
+FROM warehouse
+JOIN warehouse_product ON warehouse.id=warehouse_product.warehouse_id
+JOIN products ON warehouse_product.product_id=products.id
+WHERE products.description ILIKE 'diet pepsi';
+
+-- from walkthrough
+SELECT warehouse.id, warehouse.warehouse
+FROM products
+JOIN warehouse_product ON products.id=warehouse_product.product_id
+JOIN warehouse ON warehouse_product.warehouse_id=warehouse.id
+WHERE products.description ILIKE 'diet pepsi';
+
+-- from walkthrough -- returns only the warehouse names
+SELECT warehouse.warehouse
+FROM products
+JOIN warehouse_product ON products.id=warehouse_product.product_id
+JOIN warehouse ON warehouse_product.warehouse_id=warehouse.id
+WHERE products.description ILIKE 'diet pepsi';
+
+-- 5. Get the number of orders for each customer. NOTE: It is OK if those without orders are not included in results.
 
 SELECT customers.first_name, customers.last_name, count(total)
-FROM customers 
+FROM customers
 FULL OUTER JOIN addresses ON customers.id = addresses.customer_id
 FULL OUTER JOIN orders ON addresses.id = orders.address_id
 GROUP BY customers.id
 ;
 
+-- from walkthrough
+SELECT customers.id, customers.first_name, customers.last_name, count(orders.order_date)
+FROM orders
+FULL OUTER JOIN  addresses ON orders.address_id=addresses.id
+FULL OUTER JOIN  customers ON addresses.customer_id=customers.id
+GROUP BY customers.id;
 
---How many customers do we have?
+-- from walkthrough
+SELECT customers.first_name, customers.last_name, count(orders.order_date)
+FROM orders
+FULL OUTER JOIN  addresses ON orders.address_id=addresses.id
+FULL OUTER JOIN  customers ON addresses.customer_id=customers.id
+GROUP BY customers.id;
+
+
+-- 6. How many customers do we have?
 SELECT count(*)
 FROM customers;
 
---How many products do we carry?
+-- 7. How many products do we carry?
 SELECT count(*)
 FROM products;
 
---What is the total available on-hand quantity of diet pepsi?
+-- 8. What is the total available on-hand quantity of diet pepsi?
 SELECT SUM(on_hand)
 FROM warehouse_product
 FULL OUTER JOIN products ON products.id = warehouse_product.product_id
 WHERE description='diet pepsi'
 ;
- 
+
+-- from walkthrough
+FROM products
+JOIN warehouse_product ON warehouse_product.product_id=products.id
+WHERE products.description='diet pepsi';
